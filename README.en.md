@@ -52,7 +52,7 @@ When published, the package name is:
 ## Usage
 
 1. Open a session.
-2. Press `Ctrl+F` (`Cmd+F` on macOS); the input is focused automatically.
+2. Press `Ctrl+F` (`Cmd+F` on macOS) to open the panel; the input is focused automatically. Press it again to close the panel.
 3. Type a query. The panel shows the current hit and the total, plus per-scope counts.
 4. Use `↑` / `↓`, Enter, Shift+Enter, or the panel buttons to move between hits.
 5. Uncheck scopes to narrow the search.

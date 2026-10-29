@@ -3,7 +3,7 @@
 ## 0.1.0
 
 - Initial release.
-- Ctrl+F session search with a floating panel.
+- Ctrl+F session search with a floating panel; press Ctrl+F again to close it.
 - Search scopes: user, assistant, reasoning, tool calls, tool results, shell.
 - Space-separated AND queries, quoted phrases, and `-` exclusions.
 - CSS Custom Highlight API highlighting and active-hit outline fallback.

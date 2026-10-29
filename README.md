@@ -59,7 +59,7 @@ Windows 上路径示例：`file:///E:/my/open-source/opencode-plugin-search-in-s
 ## 使用
 
 1. 打开一个会话。
-2. 按 `Ctrl+F`（macOS 为 `Cmd+F`）打开搜索面板，焦点会自动进入输入框。
+2. 按 `Ctrl+F`（macOS 为 `Cmd+F`）打开搜索面板，焦点会自动进入输入框；面板已展开时再次按 `Ctrl+F` 会关闭面板。
 3. 输入关键词，面板会显示 `当前/总数` 和每个范围的命中数。
 4. 用 `↑` / `↓`、Enter、Shift+Enter 或面板按钮切换命中项。
 5. 点击范围复选框可以只搜索某几类内容。

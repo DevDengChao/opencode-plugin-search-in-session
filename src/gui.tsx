@@ -138,7 +138,7 @@ export default Plugin.define({
         return
       }
 
-      if (event.isComposing) return
+      if (event.isComposing || event.repeat) return
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return
       if (event.key.toLowerCase() !== "f") return
       if (!controller.sessionKey() || isDialogOpen()) return
@@ -149,7 +149,7 @@ export default Plugin.define({
       closeBuiltInSearch()
       event.preventDefault()
       event.stopImmediatePropagation()
-      controller.openPanel()
+      controller.togglePanel()
     }
 
     ;(globalThis as Record<string, unknown>)[globalKeyHandler] = onKeyDown
