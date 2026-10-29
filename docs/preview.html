@@ -1,0 +1,1366 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenCode 会话内搜索 · UI 预览</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #131313;
+      --bg-elevated: #1b1b1b;
+      --bg-layer: #202020;
+      --bg-hover: #2a2a2a;
+      --border: #343434;
+      --border-strong: #474747;
+      --text: #e8e8e8;
+      --text-muted: #a3a3a3;
+      --text-faint: #777;
+      --accent: #7c9cff;
+      --accent-strong: #a9bcff;
+      --accent-soft: color-mix(in srgb, var(--accent) 20%, transparent);
+      --accent-softer: color-mix(in srgb, var(--accent) 11%, transparent);
+      --danger: #ff7a7a;
+      --warning: #f2c46d;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .06);
+      --radius: 12px;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg: #f5f5f4;
+      --bg-elevated: #ffffff;
+      --bg-layer: #ffffff;
+      --bg-hover: #f0f0ef;
+      --border: #e3e3e0;
+      --border-strong: #d0d0cc;
+      --text: #232323;
+      --text-muted: #6d6d68;
+      --text-faint: #969690;
+      --accent: #3f6ee8;
+      --accent-strong: #2856cc;
+      --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+      --accent-softer: color-mix(in srgb, var(--accent) 8%, transparent);
+      --danger: #d13c3c;
+      --warning: #aa7420;
+      --shadow: 0 18px 50px rgba(20, 20, 20, .12), 0 0 0 1px rgba(0, 0, 0, .06);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(900px 500px at 70% -10%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 65%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.55;
+      overflow: hidden;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    .preview-shell {
+      height: 100%;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .preview-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex: 0 0 auto;
+      padding: 0 4px;
+    }
+
+    .preview-title {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .preview-title strong { font-size: 14px; letter-spacing: -.01em; }
+    .preview-title span { color: var(--text-faint); font-size: 12px; }
+
+    .preview-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preview-btn {
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      border-radius: 999px;
+      height: 28px;
+      padding: 0 12px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+
+    .preview-btn:hover { background: var(--bg-hover); color: var(--text); border-color: var(--border-strong); }
+    .preview-btn[aria-pressed="true"] { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+
+    .app {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--bg-elevated);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-header {
+      flex: 0 0 48px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px 0 16px;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 5;
+    }
+
+    .brand {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      background: var(--text);
+      color: var(--bg-elevated);
+      font-weight: 800;
+      font-size: 12px;
+      flex: 0 0 auto;
+    }
+
+    .header-title {
+      min-width: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex: 1 1 auto;
+    }
+
+    .header-title h1 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-title .crumb {
+      color: var(--text-faint);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex: 0 0 auto;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text-muted);
+      display: inline-grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease;
+    }
+
+    .icon-btn:hover { background: var(--bg-hover); color: var(--text); }
+    .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .icon-btn svg { width: 16px; height: 16px; }
+
+    .header-hint {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 26px;
+      padding: 0 7px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-faint);
+      font-size: 11px;
+    }
+
+    .filter-chip {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      height: 26px;
+      max-width: 40%;
+      padding: 0 4px 0 8px;
+      border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+      border-radius: 6px;
+      background: var(--accent-softer);
+      color: var(--text-muted);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .filter-chip.show { display: inline-flex; }
+
+    .filter-chip .chip-query {
+      color: var(--text);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .filter-chip .chip-count { color: var(--text-faint); }
+
+    .filter-chip .chip-close {
+      width: 20px;
+      height: 20px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-faint);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .filter-chip .chip-close:hover { background: var(--accent-soft); color: var(--text); }
+    .filter-chip .chip-close svg { width: 10px; height: 10px; }
+
+    .header-hint kbd {
+      font-family: var(--sans);
+      color: var(--text-muted);
+      font-size: 10px;
+      background: var(--bg-layer);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 4px;
+    }
+
+    .timeline-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+      padding: 22px 0 150px;
+      position: relative;
+    }
+
+    .timeline {
+      width: min(760px, calc(100% - 48px));
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    .filter-banner {
+      display: none !important;
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto 20px;
+      width: min(760px, calc(100% - 48px));
+      padding: 7px 10px 7px 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      border-radius: 9px;
+      background: var(--accent-softer);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .filter-banner strong { color: var(--text); font-weight: 600; }
+    .filter-banner .spacer { flex: 1; }
+
+    .filter-banner .clear-filter {
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .filter-banner .clear-filter:hover { background: var(--accent-soft); }
+
+    .row {
+      position: relative;
+      min-width: 0;
+      transition: opacity .18s ease;
+    }
+
+    .row.filtered-out { display: none; }
+
+    .row + .row { margin-top: 0; }
+
+    .user-row { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .user-bubble {
+      max-width: 86%;
+      padding: 10px 14px;
+      border-radius: 14px 14px 4px 14px;
+      background: var(--bg-layer);
+      border: 1px solid var(--border);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    .user-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-faint);
+      font-size: 11px;
+      padding-right: 4px;
+    }
+
+    .avatar-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #86a0ff, #4964e8);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.2);
+    }
+
+    .assistant-row { display: flex; gap: 10px; }
+    .assistant-gutter {
+      width: 18px;
+      flex: 0 0 18px;
+      padding-top: 3px;
+      color: var(--text-faint);
+      display: flex;
+      justify-content: center;
+    }
+
+    .assistant-body { min-width: 0; flex: 1 1 auto; }
+    .assistant-body p { margin: 0 0 10px; }
+    .assistant-body p:last-child { margin-bottom: 0; }
+    .assistant-body ul { margin: 8px 0 10px; padding-left: 20px; }
+    .assistant-body li { margin: 3px 0; }
+    .assistant-body code {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: var(--bg-layer);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    .assistant-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      color: var(--text-faint);
+      font-size: 11px;
+    }
+
+    .thinking-row, .tool-row {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--bg-layer) 72%, transparent);
+      overflow: hidden;
+    }
+
+    .row-head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 38px;
+      padding: 0 11px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .row-head .chevron {
+      width: 12px;
+      height: 12px;
+      color: var(--text-faint);
+      transition: transform .15s ease;
+    }
+
+    .thinking-row[data-open="true"] .chevron { transform: rotate(90deg); }
+
+    .row-head .kind-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .row-head .kind-icon svg { width: 12px; height: 12px; }
+    .row-head .label { color: var(--text-muted); font-weight: 500; }
+    .row-head .detail {
+      color: var(--text-faint);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .row-head .spacer { flex: 1 1 auto; }
+    .row-head .state { color: var(--text-faint); font-size: 11px; }
+
+    .row-content {
+      padding: 0 12px 12px 41px;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .thinking-row:not([data-open="true"]) .row-content { display: none; }
+
+    .tool-row .row-content {
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      margin-top: 2px;
+    }
+
+    .code-block {
+      margin: 8px 0 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .tool-output {
+      color: var(--text-faint);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      max-height: 110px;
+      overflow: hidden;
+    }
+
+    mark.hit {
+      background: color-mix(in srgb, var(--accent) 28%, transparent);
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 1px;
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    mark.hit.active {
+      background: var(--accent);
+      color: var(--bg-elevated);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+
+    .composer-wrap {
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      padding: 26px 18px 16px;
+      background: linear-gradient(to top, var(--bg-elevated) 55%, transparent);
+      pointer-events: none;
+    }
+
+    .composer {
+      pointer-events: auto;
+      width: min(760px, 100%);
+      margin: 0 auto;
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      background: var(--bg-layer);
+      box-shadow: 0 12px 30px rgba(0,0,0,.18);
+      padding: 11px 12px;
+      color: var(--text-faint);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .composer .grow { flex: 1 1 auto; }
+    .composer .send {
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: var(--bg-elevated);
+      display: grid;
+      place-items: center;
+    }
+
+    /* Find panel */
+    .find-panel {
+      position: absolute;
+      top: 56px;
+      right: 14px;
+      z-index: 30;
+      width: 456px;
+      max-width: calc(100% - 28px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--bg-elevated) 97%, transparent);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      opacity: 0;
+      transform: translateY(-6px) scale(.985);
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+    }
+
+    .find-panel.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .find-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px;
+    }
+
+    .find-input-wrap {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      padding: 0 8px 0 10px;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text-faint);
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .find-input-wrap:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+    }
+
+    .find-input-wrap svg { width: 14px; height: 14px; flex: 0 0 auto; }
+
+    .find-input-wrap input {
+      flex: 1 1 auto;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      height: 100%;
+      padding: 0;
+    }
+
+    .find-input-wrap input::placeholder { color: var(--text-faint); }
+
+    .find-count {
+      flex: 0 0 auto;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .01em;
+      padding-left: 4px;
+      white-space: nowrap;
+    }
+
+    .find-count.zero { color: var(--text-faint); }
+
+    .find-nav {
+      display: flex;
+      align-items: center;
+      gap: 1px;
+      flex: 0 0 auto;
+    }
+
+    .find-nav .icon-btn { width: 30px; height: 30px; }
+
+    .find-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 2px;
+      flex: 0 0 auto;
+    }
+
+    .find-scopes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 10px;
+      padding: 4px 12px 11px;
+    }
+
+    .scope-title {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-faint);
+      font-size: 11px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      height: 22px;
+      margin-top: 2px;
+    }
+
+    .scope-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .scope {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      height: 26px;
+      padding: 0 5px;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .12s ease, color .12s ease;
+    }
+
+    .scope:hover { background: var(--bg-hover); color: var(--text); }
+
+    .scope input {
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      margin: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 3px;
+      background: var(--bg);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .scope input:checked { background: var(--accent); border-color: var(--accent); }
+    .scope input:checked::after {
+      content: "";
+      width: 6px;
+      height: 3px;
+      border-left: 1.5px solid var(--bg-elevated);
+      border-bottom: 1.5px solid var(--bg-elevated);
+      transform: rotate(-45deg) translateY(-1px);
+    }
+
+    .scope input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    .scope .kind-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 2px;
+      flex: 0 0 auto;
+      background: var(--text-faint);
+    }
+
+    .scope[data-scope="user"] .kind-dot { background: #8ea6ff; }
+    .scope[data-scope="assistant"] .kind-dot { background: #7cd3a4; }
+    .scope[data-scope="reasoning"] .kind-dot { background: #c69cff; }
+    .scope[data-scope="tool-call"] .kind-dot { background: #f0c36a; }
+    .scope[data-scope="tool-result"] .kind-dot { background: #f19a8d; }
+
+    .scope .scope-count {
+      margin-left: auto;
+      color: var(--text-faint);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      min-width: 14px;
+      text-align: right;
+    }
+
+    .scope:has(input:not(:checked)) { opacity: .55; }
+
+    .find-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px 10px;
+      border-top: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg-layer) 55%, transparent);
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .switch-row input { position: absolute; opacity: 0; pointer-events: none; }
+
+    .switch-track {
+      width: 28px;
+      height: 16px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: var(--border-strong);
+      position: relative;
+      transition: background .15s ease;
+    }
+
+    .switch-track::after {
+      content: "";
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      top: 2px;
+      left: 2px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,.25);
+      transition: transform .15s ease;
+    }
+
+    .switch-row input:checked + .switch-track { background: var(--accent); }
+    .switch-row input:checked + .switch-track::after { transform: translateX(12px); }
+    .switch-row input:focus-visible + .switch-track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .find-meta {
+      margin-left: auto;
+      color: var(--text-faint);
+      font-size: 11px;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .find-footnote {
+      padding: 0 12px 10px;
+      color: var(--text-faint);
+      font-size: 10.5px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .find-footnote span { display: inline-flex; align-items: center; gap: 4px; }
+    .find-footnote kbd {
+      font-family: var(--sans);
+      font-size: 9.5px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0 3px;
+      color: var(--text-muted);
+      background: var(--bg);
+    }
+
+    .empty-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 70px 20px;
+      color: var(--text-faint);
+      text-align: center;
+    }
+
+    .app.is-filtering.is-empty .empty-state { display: flex; }
+    .app.is-filtering.is-empty .timeline { display: none; }
+    .empty-state strong { color: var(--text-muted); font-weight: 500; font-size: 13px; }
+    .empty-state span { font-size: 12px; }
+
+    @media (max-width: 760px) {
+      .preview-shell { padding: 10px; }
+      .preview-title span { display: none; }
+      .find-panel { right: 8px; width: calc(100% - 16px); }
+      .find-scopes { grid-template-columns: 1fr; }
+      .header-hint { display: none; }
+      .timeline { width: calc(100% - 24px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-bar">
+      <div class="preview-title">
+        <strong>OpenCode 会话内搜索</strong>
+        <span>UI/UX 预览 · 可交互</span>
+      </div>
+      <div class="preview-actions">
+        <button class="preview-btn" id="previewPanel" aria-pressed="true">搜索面板</button>
+        <button class="preview-btn" id="previewFilter" aria-pressed="false">仅显示匹配</button>
+        <button class="preview-btn" id="previewTheme">浅色</button>
+      </div>
+    </div>
+
+    <div class="app" id="app">
+      <header class="app-header">
+        <div class="brand">O</div>
+        <div class="header-title">
+          <h1>Session search 设计讨论</h1>
+          <span class="crumb">~/open-source/opencode-plugin-search-in-session</span>
+        </div>
+        <div class="header-actions">
+          <div class="filter-chip" id="filterChip">
+            <span>筛选中</span>
+            <span class="chip-query" id="chipQuery">search</span>
+            <span class="chip-count" id="chipCount">· 7</span>
+            <button class="chip-close" id="chipClose" title="清除筛选" aria-label="清除筛选">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="header-hint"><kbd>Ctrl</kbd><kbd>F</kbd></div>
+          <button class="icon-btn" id="headerSearch" title="在会话中搜索 (Ctrl+F)" aria-label="在会话中搜索">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="4.25" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M10.2 10.2 13 13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="icon-btn" title="会话菜单" aria-label="会话菜单">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="3.2" cy="8" r="1" fill="currentColor"/>
+              <circle cx="8" cy="8" r="1" fill="currentColor"/>
+              <circle cx="12.8" cy="8" r="1" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="timeline-wrap" id="timelineWrap">
+        <div class="filter-banner" id="filterBanner">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2.5 3.5h11L9.4 8.2v3.9l-2.8 1.4V8.2L2.5 3.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+          <span>仅显示包含 <strong id="filterQuery">search</strong> 的内容</span>
+          <span class="spacer"></span>
+          <span id="filterSummary">7 个片段</span>
+          <button class="clear-filter" id="clearFilter">清除筛选</button>
+        </div>
+
+        <div class="timeline" id="timeline">
+          <div class="row user-row" data-kind="user">
+            <div class="user-bubble">我想在会话里快速找到之前讨论过的 search 逻辑，最好能直接 Ctrl+F。</div>
+            <div class="user-meta"><span class="avatar-dot"></span><span>你 · 10:24</span></div>
+          </div>
+
+          <div class="row assistant-row" data-kind="assistant">
+            <div class="assistant-gutter">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 3.5h10v7H8.2L5 13v-2.5H3v-7Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="assistant-body">
+              <p>可以。这个插件会在会话页监听 <code>Ctrl+F</code>，打开一个 search 面板，并按用户、回复、思考、工具调用和工具结果统计命中次数。</p>
+              <p>为了让长会话也能快速定位，索引来自消息数据而不是当前 DOM；高亮和滚动才交给渲染层。</p>
+              <div class="assistant-meta"><span>OpenCode</span><span>·</span><span>10:24</span></div>
+            </div>
+          </div>
+
+          <div class="row thinking-row" data-kind="reasoning" data-open="true">
+            <div class="row-head">
+              <svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="m6 3.5 4.5 4.5L6 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="kind-icon">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M6.2 3.2A4.2 4.2 0 0 1 12.8 8c0 1.3-.6 2.3-1.5 3.1v1.4H5.7v-1.4A4.2 4.2 0 0 1 6.2 3.2Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+                  <path d="M6.3 14h3.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="label">思考</span>
+              <span class="detail">先确认虚拟滚动只渲染可视区域</span>
+              <span class="spacer"></span>
+              <span class="state">12 秒</span>
+            </div>
+            <div class="row-content">
+              先确认虚拟滚动只渲染可视区域，因此 search 索引必须来自消息数据，而不是 DOM。命中后再通过 part id 展开折叠区域，并用 Range 高亮可见文本。
+            </div>
+          </div>
+
+          <div class="row tool-row" data-kind="tool-call" data-open="true">
+            <div class="row-head">
+              <svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="m6 3.5 4.5 4.5L6 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="kind-icon">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M5 4.5 2.5 8 5 11.5M11 4.5 13.5 8 11 11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="label">Read</span>
+              <span class="detail">packages/app/src/session/timeline/search-controller.ts</span>
+              <span class="spacer"></span>
+              <span class="state">完成</span>
+            </div>
+            <div class="row-content">
+              <div class="code-block">const matches = createMemo&lt;TimelineSearchMatch[]&gt;(() =&gt; {
+  // scan visible text parts from the session data
+})</div>
+            </div>
+          </div>
+
+          <div class="row assistant-row" data-kind="assistant">
+            <div class="assistant-gutter">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 3.5h10v7H8.2L5 13v-2.5H3v-7Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="assistant-body">
+              <p>实现上建议分两层：数据层负责 search 索引与计数，DOM 层只负责高亮和过滤。这样即使消息被虚拟滚动卸载，统计仍然准确。</p>
+              <ul>
+                <li>空格分隔多个关键词，按 AND 组合</li>
+                <li>用引号保留短语，用 <code>-</code> 排除词</li>
+                <li>上下键在命中项之间循环</li>
+              </ul>
+              <div class="assistant-meta"><span>OpenCode</span><span>·</span><span>10:25</span></div>
+            </div>
+          </div>
+
+          <div class="row user-row" data-kind="user">
+            <div class="user-bubble">支持用空格同时 search 多个关键词吗？筛选后能不能把不相关的内容隐藏掉？</div>
+            <div class="user-meta"><span class="avatar-dot"></span><span>你 · 10:26</span></div>
+          </div>
+
+          <div class="row assistant-row" data-kind="assistant">
+            <div class="assistant-gutter">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 3.5h10v7H8.2L5 13v-2.5H3v-7Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="assistant-body">
+              <p>可以。多个关键词按 AND 组合，只有同时包含全部关键词的片段才会进入结果。打开「仅显示匹配内容」后，时间线只保留命中的行，其他行会被隐藏。</p>
+              <div class="assistant-meta"><span>OpenCode</span><span>·</span><span>10:26</span></div>
+            </div>
+          </div>
+
+          <div class="row tool-row" data-kind="tool-result" data-open="true">
+            <div class="row-head">
+              <svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="m6 3.5 4.5 4.5L6 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="kind-icon">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M3 4h10v8H3z" stroke="currentColor" stroke-width="1.1"/>
+                  <path d="M3 7h10M6 7v5" stroke="currentColor" stroke-width="1.1"/>
+                </svg>
+              </span>
+              <span class="label">Grep</span>
+              <span class="detail">searchController · 3 files</span>
+              <span class="spacer"></span>
+              <span class="state">完成</span>
+            </div>
+            <div class="row-content">
+              <div class="code-block tool-output">packages/app/src/session/timeline/search-controller.ts:73
+packages/app/src/session/timeline/search-bar.tsx:12
+packages/plugin/src/gui/registries.ts:646</div>
+            </div>
+          </div>
+
+          <div class="row assistant-row" data-kind="assistant">
+            <div class="assistant-gutter">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 3.5h10v7H8.2L5 13v-2.5H3v-7Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="assistant-body">
+              <p>下一步我会先做核心匹配逻辑和单元测试，再接入面板和 DOM 高亮。UI 部分会先给你预览，确认后再进入实现。</p>
+              <div class="assistant-meta"><span>OpenCode</span><span>·</span><span>10:27</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="m15.5 15.5 4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <strong>没有匹配的内容</strong>
+          <span>试试更短的关键词，或调整搜索范围。</span>
+        </div>
+      </div>
+
+      <div class="find-panel open" id="findPanel" role="search" aria-label="在会话中搜索">
+        <div class="find-top">
+          <div class="find-input-wrap">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="4.25" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M10.2 10.2 13 13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <input id="findInput" type="search" placeholder="在会话中搜索…" value="search" autocomplete="off" spellcheck="false" />
+            <span class="find-count" id="findCount">1/7</span>
+          </div>
+          <div class="find-nav">
+            <button class="icon-btn" id="findPrev" title="上一个 (↑)" aria-label="上一个">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3.5 10 8 5.5l4.5 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="icon-btn" id="findNext" title="下一个 (↓)" aria-label="下一个">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="m3.5 6 4.5 4.5L12.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <span class="find-divider"></span>
+            <button class="icon-btn" id="findClose" title="关闭 (Esc)" aria-label="关闭">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="find-scopes">
+          <div class="scope-title">搜索范围</div>
+          <label class="scope" data-scope="user"><input type="checkbox" checked /><span class="kind-dot"></span>用户输入<span class="scope-count" data-count="user">2</span></label>
+          <label class="scope" data-scope="assistant"><input type="checkbox" checked /><span class="kind-dot"></span>助手回复<span class="scope-count" data-count="assistant">5</span></label>
+          <label class="scope" data-scope="reasoning"><input type="checkbox" checked /><span class="kind-dot"></span>思考过程<span class="scope-count" data-count="reasoning">1</span></label>
+          <label class="scope" data-scope="tool-call"><input type="checkbox" checked /><span class="kind-dot"></span>工具调用<span class="scope-count" data-count="tool-call">1</span></label>
+          <label class="scope" data-scope="tool-result"><input type="checkbox" checked /><span class="kind-dot"></span>工具结果<span class="scope-count" data-count="tool-result">2</span></label>
+          <label class="scope" data-scope="system" style="display:none"><input type="checkbox" checked /><span class="kind-dot"></span>系统<span class="scope-count" data-count="system">0</span></label>
+        </div>
+
+        <div class="find-footer">
+          <label class="switch-row">
+            <input type="checkbox" id="filterToggle" />
+            <span class="switch-track"></span>
+            <span>仅显示匹配内容</span>
+          </label>
+          <span class="find-meta" id="findMeta">7 处 · 7 个片段</span>
+        </div>
+        <div class="find-footnote">
+          <span><kbd>↑</kbd><kbd>↓</kbd> 导航</span>
+          <span><kbd>Enter</kbd> 下一个</span>
+          <span><kbd>Esc</kbd> 关闭</span>
+          <span>空格分隔关键词</span>
+        </div>
+      </div>
+
+      <div class="filter-banner" style="display:none"></div>
+
+      <div class="composer-wrap">
+        <div class="composer">
+          <span class="grow">继续追问，或输入 / 查看命令…</span>
+          <span class="send">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 12.5v-9M4.5 7 8 3.5 11.5 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const app = document.getElementById('app')
+    const panel = document.getElementById('findPanel')
+    const input = document.getElementById('findInput')
+    const countEl = document.getElementById('findCount')
+    const metaEl = document.getElementById('findMeta')
+    const filterToggle = document.getElementById('filterToggle')
+    const timelineWrap = document.getElementById('timelineWrap')
+    const filterBanner = document.getElementById('filterBanner')
+    const filterQuery = document.getElementById('filterQuery')
+    const filterSummary = document.getElementById('filterSummary')
+    const filterChip = document.getElementById('filterChip')
+    const chipQuery = document.getElementById('chipQuery')
+    const chipCount = document.getElementById('chipCount')
+    const previewPanel = document.getElementById('previewPanel')
+    const previewFilter = document.getElementById('previewFilter')
+    const previewTheme = document.getElementById('previewTheme')
+
+    const rows = [...document.querySelectorAll('.row')]
+    const original = new Map(rows.map(row => [row, row.innerHTML]))
+
+    let hits = []
+    let active = 0
+    let filtering = false
+
+    const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+    function parseQuery(value) {
+      const terms = []
+      const re = /"([^"]+)"|(\S+)/g
+      let match
+      while ((match = re.exec(value)) !== null) {
+        const term = (match[1] ?? match[2]).trim()
+        if (!term) continue
+        if (term.startsWith('-') && term.length > 1) continue
+        terms.push(term)
+      }
+      return [...new Set(terms)]
+    }
+
+    function highlightRow(row, terms) {
+      row.innerHTML = original.get(row)
+      if (terms.length === 0) return 0
+
+      const pattern = new RegExp(terms.map(escapeRegExp).join('|'), 'gi')
+      const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT
+          if (node.parentElement?.closest('mark, script, style')) return NodeFilter.FILTER_REJECT
+          return NodeFilter.FILTER_ACCEPT
+        }
+      })
+      const nodes = []
+      let node
+      while ((node = walker.nextNode()) !== null) nodes.push(node)
+
+      let count = 0
+      for (const textNode of nodes) {
+        const text = textNode.nodeValue
+        pattern.lastIndex = 0
+        if (!pattern.test(text)) continue
+        pattern.lastIndex = 0
+        const fragment = document.createDocumentFragment()
+        let last = 0
+        let m
+        while ((m = pattern.exec(text)) !== null) {
+          if (m.index > last) fragment.append(text.slice(last, m.index))
+          const mark = document.createElement('mark')
+          mark.className = 'hit'
+          mark.textContent = m[0]
+          fragment.append(mark)
+          last = m.index + m[0].length
+          count++
+          if (m[0].length === 0) pattern.lastIndex++
+        }
+        if (last < text.length) fragment.append(text.slice(last))
+        textNode.replaceWith(fragment)
+      }
+      return count
+    }
+
+    function scopeEnabled(kind) {
+      const checkbox = document.querySelector(`.scope[data-scope="${kind}"] input`)
+      return !checkbox || checkbox.checked
+    }
+
+    function refresh() {
+      const terms = parseQuery(input.value)
+      const counts = { user: 0, assistant: 0, reasoning: 0, 'tool-call': 0, 'tool-result': 0, system: 0 }
+
+      for (const row of rows) {
+        const kind = row.dataset.kind ?? 'assistant'
+        const enabled = scopeEnabled(kind)
+        const count = highlightRow(row, terms)
+        if (enabled) counts[kind] = (counts[kind] ?? 0) + count
+      }
+
+      hits = [...document.querySelectorAll('.hit')].filter(mark => {
+        const row = mark.closest('.row')
+        return row && scopeEnabled(row.dataset.kind ?? 'assistant')
+      })
+
+      for (const [kind, count] of Object.entries(counts)) {
+        const el = document.querySelector(`[data-count="${kind}"]`)
+        if (el) el.textContent = String(count)
+      }
+
+      if (active >= hits.length) active = 0
+      if (active < 0) active = hits.length - 1
+      hits.forEach((mark, index) => mark.classList.toggle('active', index === active))
+
+      const total = hits.length
+      countEl.textContent = total === 0 ? '0/0' : `${active + 1}/${total}`
+      countEl.classList.toggle('zero', total === 0)
+      metaEl.textContent = total === 0 ? '无匹配' : `${total} 处 · ${new Set(hits.map(hit => hit.closest('.row'))).size} 个片段`
+
+      filterQuery.textContent = input.value.trim() || '关键词'
+      filterSummary.textContent = total === 0 ? '0 个片段' : `${new Set(hits.map(hit => hit.closest('.row'))).size} 个片段`
+
+      applyFilter()
+      if (total > 0) scrollActive()
+    }
+
+    function applyFilter() {
+      const terms = parseQuery(input.value)
+      const activeFilter = filtering && terms.length > 0
+
+      app.classList.toggle('is-filtering', activeFilter)
+      filterToggle.checked = activeFilter
+      previewFilter.setAttribute('aria-pressed', String(activeFilter))
+      filterChip.classList.toggle('show', activeFilter)
+      chipQuery.textContent = input.value.trim() || '关键词'
+      chipCount.textContent = `· ${new Set(hits.map(hit => hit.closest('.row'))).size}`
+
+      let visibleRows = 0
+      for (const row of rows) {
+        const kind = row.dataset.kind ?? 'assistant'
+        const hasHit = [...row.querySelectorAll('.hit')].length > 0
+        const show = !activeFilter || (scopeEnabled(kind) && hasHit)
+        row.classList.toggle('filtered-out', !show)
+        if (show) visibleRows++
+      }
+
+      app.classList.toggle('is-empty', activeFilter && visibleRows === 0)
+    }
+
+    function scrollActive() {
+      const mark = hits[active]
+      if (!mark) return
+      const wrapRect = timelineWrap.getBoundingClientRect()
+      const rect = mark.getBoundingClientRect()
+      const top = markerTop(mark)
+      if (top < timelineWrap.scrollTop + 80 || top > timelineWrap.scrollTop + timelineWrap.clientHeight - 160) {
+        timelineWrap.scrollTo({ top: Math.max(0, top - timelineWrap.clientHeight / 2), behavior: 'smooth' })
+      }
+    }
+
+    function markerTop(mark) {
+      const rect = mark.getBoundingClientRect()
+      const wrapRect = timelineWrap.getBoundingClientRect()
+      return rect.top - wrapRect.top + timelineWrap.scrollTop
+    }
+
+    function move(delta) {
+      if (hits.length === 0) return
+      active = (active + delta + hits.length) % hits.length
+      refresh()
+    }
+
+    function openPanel() {
+      panel.classList.add('open')
+      previewPanel.setAttribute('aria-pressed', 'true')
+      requestAnimationFrame(() => {
+        input.focus()
+        input.select()
+      })
+    }
+
+    function closePanel() {
+      panel.classList.remove('open')
+      previewPanel.setAttribute('aria-pressed', 'false')
+    }
+
+    input.addEventListener('input', () => {
+      active = 0
+      refresh()
+    })
+
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closePanel()
+        return
+      }
+      if (event.altKey || event.metaKey || event.ctrlKey) return
+      if (event.key === 'ArrowDown' || event.key === 'Enter') {
+        event.preventDefault()
+        move(event.shiftKey ? -1 : 1)
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        move(-1)
+      }
+    })
+
+    document.getElementById('findNext').addEventListener('click', () => move(1))
+    document.getElementById('findPrev').addEventListener('click', () => move(-1))
+    document.getElementById('findClose').addEventListener('click', closePanel)
+    document.getElementById('headerSearch').addEventListener('click', openPanel)
+
+    filterToggle.addEventListener('change', () => {
+      filtering = filterToggle.checked
+      applyFilter()
+    })
+
+    document.getElementById('clearFilter').addEventListener('click', () => {
+      filtering = false
+      applyFilter()
+    })
+
+    document.getElementById('chipClose').addEventListener('click', () => {
+      filtering = false
+      filterToggle.checked = false
+      applyFilter()
+    })
+
+    for (const scope of document.querySelectorAll('.scope input')) {
+      scope.addEventListener('change', () => {
+        active = 0
+        refresh()
+      })
+    }
+
+    previewPanel.addEventListener('click', () => {
+      if (panel.classList.contains('open')) closePanel()
+      else openPanel()
+    })
+
+    previewFilter.addEventListener('click', () => {
+      filtering = !filtering
+      filterToggle.checked = filtering
+      applyFilter()
+    })
+
+    previewTheme.addEventListener('click', () => {
+      const light = document.documentElement.dataset.theme === 'light'
+      document.documentElement.dataset.theme = light ? 'dark' : 'light'
+      previewTheme.textContent = light ? '浅色' : '深色'
+    })
+
+    document.addEventListener('keydown', (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+        event.preventDefault()
+        openPanel()
+      }
+    })
+
+    const thinking = document.querySelector('.thinking-row')
+    thinking.querySelector('.row-head').addEventListener('click', () => {
+      thinking.dataset.open = thinking.dataset.open === 'true' ? 'false' : 'true'
+      refresh()
+    })
+
+    for (const row of document.querySelectorAll('.tool-row')) {
+      row.querySelector('.row-head').addEventListener('click', () => {
+        row.dataset.open = row.dataset.open === 'true' ? 'false' : 'true'
+        const content = row.querySelector('.row-content')
+        content.style.display = row.dataset.open === 'true' ? '' : 'none'
+      })
+    }
+
+    refresh()
+  </script>
+</body>
+</html>

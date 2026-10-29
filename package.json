@@ -1,0 +1,64 @@
+{
+  "name": "@devdengchao/opencode-plugin-search-in-session",
+  "version": "0.1.0",
+  "description": "Search inside an OpenCode Desktop session with scope filters, highlighting and session filtering",
+  "license": "MIT",
+  "author": "DevDengChao",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DevDengChao/opencode-plugin-search-in-session.git"
+  },
+  "homepage": "https://github.com/DevDengChao/opencode-plugin-search-in-session#readme",
+  "bugs": {
+    "url": "https://github.com/DevDengChao/opencode-plugin-search-in-session/issues"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "opencode-desktop",
+    "search",
+    "session",
+    "find",
+    "typescript",
+    "gui-plugin"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./gui-experimental": "./dist/gui.cjs"
+  },
+  "files": [
+    "src",
+    "dist",
+    "docs",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@opencode/client": "2.2.1",
+    "@opencode/plugin": "2.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "jsdom": "^27.4.0",
+    "solid-js": "^1.9.17",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.7",
+    "vite-plugin-solid": "^2.11.14",
+    "vitest": "^4.1.12"
+  }
+}
