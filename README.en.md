@@ -15,7 +15,15 @@ OpenCode Desktop 2.2.x ships a built-in Ctrl+F search, but it only scans user an
 
 ## Preview
 
-See [docs/preview.html](./docs/preview.html). Open it in a browser to inspect the panel, filter state, light/dark themes, and interactions.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/DevDengChao/opencode-plugin-search-in-session/main/docs/preview.jpg" alt="Searching github in an OpenCode session with 193 hits" width="900">
+</p>
+
+<p align="center">
+  <sub>Searching <code>github</code>: 193 hits across 33 parts, broken down by user, assistant, reasoning, tool call and tool result scopes.</sub>
+</p>
+
+An interactive preview is also available at [docs/preview.html](./docs/preview.html).
 
 ## Install
 

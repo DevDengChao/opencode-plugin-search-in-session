@@ -15,7 +15,15 @@ OpenCode Desktop 2.2.x 已经自带一个 Ctrl+F 文本搜索，但它只扫描�
 
 ## 预览
 
-UI 预览文件：[docs/preview.html](./docs/preview.html)。直接用浏览器打开即可查看搜索面板、筛选状态、深浅色和交互效果。
+<p align="center">
+  <img src="https://raw.githubusercontent.com/DevDengChao/opencode-plugin-search-in-session/main/docs/preview.jpg" alt="在 OpenCode 会话中搜索 github，显示 193 处命中" width="900">
+</p>
+
+<p align="center">
+  <sub>在会话中搜索 <code>github</code>：193 处命中、33 个片段，并按用户、回复、思考、工具调用和工具结果分类统计。</sub>
+</p>
+
+也可以打开交互式预览：[docs/preview.html](./docs/preview.html)。
 
 ## 快速开始
 
@@ -136,7 +144,8 @@ src/
    ├─ header.tsx
    └─ styles.css
 tests/                       # vitest + jsdom
-docs/preview.html            # UI 预览
+docs/preview.jpg             # README 预览图
+docs/preview.html            # 交互式 UI 预览
 ```
 
 ## 已知限制
