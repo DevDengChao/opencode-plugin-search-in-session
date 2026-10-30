@@ -1,5 +1,13 @@
 # OpenCode Search in Session
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@devdengchao/opencode-plugin-search-in-session">
+    <img alt="npm" src="https://img.shields.io/npm/v/@devdengchao/opencode-plugin-search-in-session">
+  </a>
+  <img alt="OpenCode Desktop" src="https://img.shields.io/badge/OpenCode%20Desktop-2.2.x-111">
+  <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue">
+</p>
+
 在 OpenCode Desktop 的当前会话中搜索关键词，支持按内容范围过滤、命中计数、上下导航、高亮，以及“仅显示匹配内容”。
 
 OpenCode Desktop 2.2.x 已经自带一个 Ctrl+F 文本搜索，但它只扫描用户消息和助手回复的文本。这个插件是增强版：
@@ -30,9 +38,35 @@ OpenCode Desktop 2.2.x 已经自带一个 Ctrl+F 文本搜索，但它只扫描�
 ### 环境要求
 
 - OpenCode Desktop **2.2.x**（在 2.2.1 上开发和验证）
+- 使用 npm 安装时不需要额外安装 Node.js
 - 从源码构建时需要 Node.js 20.19+ 和 npm
 
-### 从源码安装
+### 从 npm 安装（推荐）
+
+在全局配置 `~/.config/opencode/opencode.jsonc` 中加入插件：
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [
+    "@devdengchao/opencode-plugin-search-in-session"
+  ]
+}
+```
+
+也可以固定版本：
+
+```jsonc
+"plugins": [
+  "@devdengchao/opencode-plugin-search-in-session@0.1.0"
+]
+```
+
+OpenCode 会从 npm 安装并加载这个包，不需要克隆仓库或手动构建。
+
+保存后如果 GUI 没有重新加载，可以重启 Desktop，或在 **Settings > Extensions > Plugins** 中确认插件已启用。
+
+### 从源码安装（开发）
 
 ```bash
 git clone git@github.com:DevDengChao/opencode-plugin-search-in-session.git
@@ -41,7 +75,7 @@ npm install
 npm run build
 ```
 
-构建产物为 `dist/gui.cjs`。在全局配置 `~/.config/opencode/opencode.jsonc` 中加入本地插件：
+构建产物为 `dist/gui.cjs`。把全局配置指向本地目录：
 
 ```jsonc
 {
@@ -53,16 +87,6 @@ npm run build
 ```
 
 Windows 上路径示例：`file:///E:/my/open-source/opencode-plugin-search-in-session`。
-
-如果 npm 包已经发布，也可以直接使用包名：
-
-```jsonc
-"plugins": [
-  "@devdengchao/opencode-plugin-search-in-session"
-]
-```
-
-保存后如果 GUI 没有重新加载，重启 Desktop，或在 **Settings > Extensions > Plugins** 中确认插件已启用。
 
 ## 使用
 

@@ -1,5 +1,13 @@
 # OpenCode Search in Session
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@devdengchao/opencode-plugin-search-in-session">
+    <img alt="npm" src="https://img.shields.io/npm/v/@devdengchao/opencode-plugin-search-in-session">
+  </a>
+  <img alt="OpenCode Desktop" src="https://img.shields.io/badge/OpenCode%20Desktop-2.2.x-111">
+  <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue">
+</p>
+
 Search the current OpenCode Desktop session with scoped filters, hit counts, keyboard navigation, highlighting, and a "show only matches" mode.
 
 OpenCode Desktop 2.2.x ships a built-in Ctrl+F search, but it only scans user and assistant text. This plugin is the enhanced version:
@@ -29,7 +37,30 @@ An interactive preview is also available at [docs/preview.html](./docs/preview.h
 
 Requires OpenCode Desktop **2.2.x**.
 
-From source:
+### From npm (recommended)
+
+Add the plugin to `~/.config/opencode/opencode.jsonc`:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [
+    "@devdengchao/opencode-plugin-search-in-session"
+  ]
+}
+```
+
+Pin a version if you prefer:
+
+```jsonc
+"plugins": [
+  "@devdengchao/opencode-plugin-search-in-session@0.1.0"
+]
+```
+
+OpenCode installs and loads the package from npm; no clone or local build is required.
+
+### From source (development)
 
 ```bash
 git clone git@github.com:DevDengChao/opencode-plugin-search-in-session.git
@@ -38,7 +69,7 @@ npm install
 npm run build
 ```
 
-Then add the local plugin to `~/.config/opencode/opencode.jsonc`:
+The build output is `dist/gui.cjs`. Point the config at the local directory:
 
 ```jsonc
 {
@@ -47,14 +78,6 @@ Then add the local plugin to `~/.config/opencode/opencode.jsonc`:
     "file:///E:/my/open-source/opencode-plugin-search-in-session"
   ]
 }
-```
-
-When published, the package name is:
-
-```jsonc
-"plugins": [
-  "@devdengchao/opencode-plugin-search-in-session"
-]
 ```
 
 ## Usage
